@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react'
 import { auth } from '../firebase/config'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { useAuthContext } from './useAuthContext'
+import { signOut } from 'firebase/auth'
 
-export const useSignup = () => {
-  const [error, setError] = useState('')
-  const [isPending, setIsPending] = useState('')
+export const useLogout = () => {
+  const [error, setError] = useState(null)
+  const [isPending, setIsPending] = useState(false)
   const [isCancelled, setIsCancelled] = useState(false)
   const { dispatch } = useAuthContext()
 
-  const signup = (email, password, displayName) => {
+  const logout = () => {
     setError(null)
     setIsPending(true)
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((res) => {
-        //add display name to user
-        updateProfile(res.user, { displayName })
+    signOut(auth)
+      .then(() => {
+        console.log('user signed out')
 
-        //dispatch login action
-        dispatch({ type: 'LOGIN', payload: res.user })
+        //dispatch logout action
+        dispatch({ type: 'LOGOUT' })
 
         //update state
         if (!isCancelled) {
@@ -34,14 +33,11 @@ export const useSignup = () => {
           setIsPending(false)
         }
       })
-
-    setIsPending(false)
-    setError(null)
   }
 
   useEffect(() => {
     return () => setIsCancelled(true)
   }, [])
 
-  return { error, isPending, signup }
+  return { logout, error, isPending }
 }
